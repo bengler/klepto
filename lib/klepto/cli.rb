@@ -32,7 +32,7 @@ module Klepto
     method_option :environment, :type => :string, :aliases => "-e", :desc => "The environment to use if the .yml file has multiple environment."
     method_option :confirm, :type => :boolean, :aliases => "-c", :default => false, :desc => "Show the UIDs that would change, then ask if you want to continue."
     def sync
-      configure
+      configure(options)
       sync = Synchronizer.new
       sync.delete_mode!
       puts "Starting sync for '#{sync.archive}' from '#{sync.source_path}'"
