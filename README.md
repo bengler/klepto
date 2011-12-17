@@ -3,6 +3,7 @@
 A gem to help fill a Trove instance with photos.
 
 Currently only syncing from the local file system is supported, though we expect to support FTP, WebDav, and other vanilla options in the future.
+Note: Do not think of this process as uploading from a directory, but syncing a whole archive.
 
 ## Installation
 
@@ -33,19 +34,22 @@ The .yml file can either contain the options at the top level, or be namespaced 
 
 ### CLI
 
-There are two commands: `upload` and `sync`.
-
-`upload` will simple add any photos from the source path that are not already on the server.
-`sync` will upload the missing photos, as well as delete any photos that are on the server but that do not exist at the source path.
+`sync` performs an upload of the missing photos, and deletes any photos that are on the server but that do not exist at the source path.
 
 For details about the options
 
-    klepto help upload
+    klepto help sync
 
-In the following example, the default configurations for the project are in config.yml, but as the project has multiple archives, the `--archive` option is specified on the command line.
+If a project has multiple archives, then these cannot at the current time be specified in the config file. Therefore, each call to sync would require that the `--archive` option be passed to the script.
 
-    klepto sync --archive animals --file config.yml --environment staging --confirm
-    klepto sync --archive deserts --file config.yml --environment staging --confirm
+    klepto sync --archive animals --file config.yml --environment staging
+    klepto sync --archive deserts --file config.yml --environment staging
+
+You can specifically have the script stop and ask for confirmation before continuing after having displayed a summary of the work to be done.
+
+Also, sanity checks have been added in the case where the archive is empty (typo?) and also where all existing photos would be deleted (wrong source path?).
+
+These can be bypassed by passing the `--quiet` switch. Do so at your own risk.
 
 ### In client code
 
@@ -78,6 +82,8 @@ You can send a yml file, or specify the various options as a hash, or set them i
 
 ## TODO
 
+* Fix uids to match pebble standards: photo:<realm>.<archive>$hash
 * Add logging facilities.
+* Add options to .yml configuration, so that archive and path can be specified in the config (less room for fat-fingered errors).
 * Log failures/exceptions and continue, and report summary of errors at the end of a run (if CLI).
 * Add configuration option for which version of the trove api to work against (currently just uses /api/trove/v1).

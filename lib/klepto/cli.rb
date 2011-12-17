@@ -4,24 +4,6 @@ require 'klepto'
 module Klepto
 
   class CLI < Thor
-    desc "upload", "Upload photos from the filesystem"
-    method_option :archive, :type => :string, :aliases => "-a", :desc => "The archive label, e.g. 'buskerud'"
-    method_option :source_path, :type => :string, :aliases => "-p", :desc => "Path to photos on the filesystem, e.g. /home/frankenstein/photos"
-    method_option :trove_api_key, :type => :string, :aliases => "-k"
-    method_option :trove_server, :type => :string, :aliases => "-s"
-    method_option :tootsie_server, :type => :string, :aliases => "-t"
-    method_option :s3_bucket, :type => :string, :aliases => "-b", :desc => "The bucket for the s3 domain"
-    method_option :file, :type => :string, :aliases => "-f", :desc => "A .yml file containing config values."
-    method_option :environment, :type => :string, :aliases => "-e", :desc => "The environment to use if the .yml file has multiple environment."
-    method_option :confirm, :type => :boolean, :aliases => "-c", :default => false, :desc => "Show the UIDs that would change, then ask if you want to continue."
-    method_option :quiet, :type => :boolean, :aliases => "-q", :default => false, :desc => "Skip sanity checks that require confirmation."
-    def upload
-      configure(options)
-      sync = Synchronizer.new
-      puts "Starting upload for '#{sync.archive}' from '#{sync.source_path}'"
-      perform(sync, options)
-    end
-
     desc "sync", "Sync photos from the filesystem. Deletes the diff."
     method_option :archive, :type => :string, :aliases => "-a", :desc => "The archive label, e.g. 'buskerud'"
     method_option :source_path, :type => :string, :aliases => "-p", :desc => "Path to photos on the filesystem, e.g. /home/frankenstein/photos"
