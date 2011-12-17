@@ -14,11 +14,12 @@ module Klepto
     method_option :file, :type => :string, :aliases => "-f", :desc => "A .yml file containing config values."
     method_option :environment, :type => :string, :aliases => "-e", :desc => "The environment to use if the .yml file has multiple environment."
     method_option :confirm, :type => :boolean, :aliases => "-c", :default => false, :desc => "Show the UIDs that would change, then ask if you want to continue."
+    method_option :quiet, :type => :boolean, :aliases => "-q", :default => false, :desc => "Skip sanity checks that require confirmation."
     def upload
       configure(options)
       sync = Synchronizer.new
       puts "Starting upload for '#{sync.archive}' from '#{sync.source_path}'"
-      perform(sync, :confirm => options[:confirm])
+      perform(sync, options)
     end
 
     desc "sync", "Sync photos from the filesystem. Deletes the diff."
@@ -31,12 +32,13 @@ module Klepto
     method_option :file, :type => :string, :aliases => "-f", :desc => "A .yml file containing config values."
     method_option :environment, :type => :string, :aliases => "-e", :desc => "The environment to use if the .yml file has multiple environment."
     method_option :confirm, :type => :boolean, :aliases => "-c", :default => false, :desc => "Show the UIDs that would change, then ask if you want to continue."
+    method_option :quiet, :type => :boolean, :aliases => "-q", :default => false, :desc => "Skip sanity checks that require confirmation."
     def sync
       configure(options)
       sync = Synchronizer.new
       sync.delete_mode!
       puts "Starting sync for '#{sync.archive}' from '#{sync.source_path}'"
-      perform(sync, :confirm => options[:confirm])
+      perform(sync, options)
     end
 
     private
@@ -74,11 +76,18 @@ module Klepto
       end
 
       if options[:confirm]
-        print "Do you wish to continue? [Y/n] "
-        confirmation = $stdin.gets.chomp
+        confirm "Do you wish to continue?"
+      end
 
-        if confirmation.downcase == "n"
-          exit(0)
+      unless options[:quiet]
+        if sync.destination.uids.count == 0
+          puts "There are no photos in this archive yet. You may have specified the wrong archive."
+          confirm "Are you sure you'd like to proceed?"
+        end
+
+        if sync.destination.uids.count > 0 && sync.destination.uids.count == sync.uids_for_deletion.count
+          puts "You are about to delete all the photos on the server."
+          confirm "Do you really want to do this?"
         end
       end
 
@@ -88,5 +97,15 @@ module Klepto
 
       sync.synchronize
     end
+
+    def confirm(are_you_sure)
+      print "#{are_you_sure} [Y/n] "
+      confirmation = $stdin.gets.chomp
+
+      if confirmation.downcase == "n"
+        exit(0)
+      end
+    end
+
   end
 end
