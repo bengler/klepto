@@ -1,14 +1,31 @@
 module Klepto
 
   class MissingConfigurationOption < Exception; end
+  class Config; end
+
+  define_singleton_method(:options) do |*options|
+    Klepto.instance_variable_set("@configuration_options", options)
+
+    options.each do |option|
+      define_singleton_method(option) do
+        instance_variable_get("@#{option}")
+      end
+
+      define_singleton_method("#{option}=".to_sym) do |value|
+        instance_variable_set("@#{option}", value)
+      end
+
+      Config.send(:define_method, option) do |value|
+        Klepto.send("#{option}=".to_sym, value)
+      end
+    end
+  end
+
+  options :archive, :source_path, :trove_api_key, :trove_server, :tootsie_server, :s3_bucket
 
   class << self
     def configuration_options
-      [
-        :archive, :source_path,
-        :trove_api_key, :trove_server,
-        :tootsie_server, :s3_bucket
-      ]
+      Klepto.instance_variable_get("@configuration_options")
     end
 
     def configure(options = {})
@@ -31,24 +48,6 @@ module Klepto
         environment ? yaml[environment] : yaml
       else
         {}
-      end
-    end
-  end
-
-  Klepto.configuration_options.each do |option|
-    define_singleton_method(option) do
-      instance_variable_get("@#{option}")
-    end
-
-    define_singleton_method("#{option}=".to_sym) do |value|
-      instance_variable_set("@#{option}", value)
-    end
-  end
-
-  class Config
-    Klepto.configuration_options.each do |option|
-      define_method(option) do |value|
-        Klepto.send("#{option}=".to_sym, value)
       end
     end
   end
