@@ -12,6 +12,7 @@ module Klepto
       Find.find(full_path) do |file|
         next if FileTest.directory?(file)
         next if File.basename(file).start_with?(".")
+        next if not FileTest.readable?(file)
 
         relative_path = file.sub(full_path, '')
         uids[generate_uid(relative_path)] = file
