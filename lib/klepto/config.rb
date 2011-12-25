@@ -3,29 +3,25 @@ module Klepto
   class MissingConfigurationOption < Exception; end
   class Config; end
 
-  define_singleton_method(:options) do |*options|
-    Klepto.instance_variable_set("@configuration_options", options)
-
-    options.each do |option|
-      define_singleton_method(option) do
-        instance_variable_get("@#{option}")
-      end
-
-      define_singleton_method("#{option}=".to_sym) do |value|
-        instance_variable_set("@#{option}", value)
-      end
-
-      Config.send(:define_method, option) do |value|
-        Klepto.send("#{option}=".to_sym, value)
-      end
-    end
-  end
-
-  options :archive, :source_path, :trove_api_key, :trove_server, :tootsie_server, :s3_bucket
-
   class << self
-    def configuration_options
-      Klepto.instance_variable_get("@configuration_options")
+    attr_accessor :configuration_options
+
+    def options(*args)
+      Klepto.configuration_options = args
+
+      args.each do |option|
+        define_singleton_method(option) do
+          instance_variable_get("@#{option}")
+        end
+
+        define_singleton_method("#{option}=".to_sym) do |value|
+          instance_variable_set("@#{option}", value)
+        end
+
+        Config.send(:define_method, option) do |value|
+          Klepto.send("#{option}=".to_sym, value)
+        end
+      end
     end
 
     def configure(options = {})
@@ -51,4 +47,6 @@ module Klepto
       end
     end
   end
+
+  options :archive, :source_path, :trove_api_key, :trove_server, :tootsie_server, :s3_bucket
 end
